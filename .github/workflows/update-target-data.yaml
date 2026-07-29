@@ -10,11 +10,11 @@ on:
   workflow_dispatch:
     inputs:
       nssp_source:
-        description: "NSSP source: cdc (self-contained) or covidhub (one week fresher)"
+        description: "NSSP source: covidhub (default; one week fresher) or cdc (self-contained)"
         required: false
-        default: "cdc"
+        default: "covidhub"
         type: choice
-        options: ["cdc", "covidhub"]
+        options: ["covidhub", "cdc"]
       archive_raw:
         description: "Also keep a dated copy of each raw pull"
         required: false
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      NSSP_SOURCE: ${{ inputs.nssp_source || 'cdc' }}
+      NSSP_SOURCE: ${{ inputs.nssp_source || 'covidhub' }}
       ARCHIVE_RAW_SNAPSHOTS: ${{ inputs.archive_raw && 'true' || 'false' }}
       # Optional: set a Socrata app token in repo secrets to lift rate limits.
       SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}

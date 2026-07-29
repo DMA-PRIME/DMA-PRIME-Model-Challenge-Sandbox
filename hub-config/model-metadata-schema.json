@@ -1,0 +1,100 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Schema for Modeling Hub model metadata",
+    "description": "This is the schema for model metadata files, please refer to https://github.com/covid19-forecast-hub-europe/covid19-forecast-hub-europe/wiki/Metadata for more information.",
+    "type": "object",
+    "properties": {
+        "team_name": {
+            "description": "The name of the team submitting the model",
+            "type": "string"
+        },
+        "team_abbr": {
+            "description": "Abbreviated name of the team submitting the model",
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_+]+$",
+            "maxLength": 25
+        },
+        "model_name": {
+            "description": "The name of the model",
+            "type": "string"
+        },
+        "model_abbr": {
+            "description": "Abbreviated name of the model",
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_+]+$",
+            "maxLength": 25
+        },
+        "model_contributors": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "affiliation": {
+                        "type": "string"
+                    },
+                    "orcid": {
+                        "type": "string",
+                        "pattern": "^\\d{4}\\-\\d{4}\\-\\d{4}\\-[\\dX]{4}$"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "twitter": {
+                        "type": "string"
+                    },
+                    "additionalProperties": false
+                }
+            }
+        },
+        "website_url": {
+            "description": "Public facing website for the model",
+            "type": "string",
+            "format": "uri"
+        },
+        "repo_url": {
+            "description": "Repository containing code for the model",
+            "type": "string",
+            "format": "uri"
+        },
+        "license": {
+            "description": "License for use of model output data",
+            "type": "string",
+            "enum": [
+                "CC0-1.0",
+                "CC-BY-4.0",
+                "CC-BY_SA-4.0",
+                "PPDL",
+                "ODC-by",
+                "ODbL",
+                "OGL-3.0"
+            ]
+        },
+        "citation": {
+            "description": "One or more citations for this model",
+            "type": "string",
+            "examples": ["Gibson GC , Reich NG , Sheldon D. Real-time mechanistic bayesian forecasts of Covid-19 mortality. medRxiv. 2020. https://doi.org/10.1101/2020.12.22.20248736"]
+        },
+        "methods": {
+            "description": "A brief (200 char.) description of the methods used by this model",
+            "type": "string"
+        },
+        "designated_model": {
+            "description": "Team-specified indicator for whether the model should be eligible for inclusion in a Hub ensemble and public visualization. A team may designate up to two models.",
+            "type": "boolean"
+        },
+        "ensemble_of_hub_models": {
+            "description": "Indicator for whether this model is an ensemble of other Hub models",
+            "type": "boolean"
+        }
+    },
+    "additionalProperties": true,
+    "required": [
+        "team_abbr",
+        "model_abbr",
+        "designated_model"
+    ]
+}

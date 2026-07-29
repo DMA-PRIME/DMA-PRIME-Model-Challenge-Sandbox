@@ -1,0 +1,19 @@
+{
+    "schema_version": "https://raw.githubusercontent.com/hubverse-org/schemas/main/v6.0.0/admin-schema.json",
+    "name": "DMA-PRIME Model Challenge",
+    "maintainer": "Clemson University Center for Public Health Modeling and Response (DMA-PRIME)",
+    "contact": {
+        "name": "Amanda Bleichrodt",
+        "email": "REPLACE_ME@clemson.edu"
+    },
+    "repository": {
+        "host": "github",
+        "owner": "DMA-PRIME",
+        "name": "DMA-PRIME-Model-Challenge"
+    },
+    "file_format": ["csv", "parquet"],
+    "timezone": "US/Eastern",
+    "cloud": {
+        "enabled": false
+    }
+}

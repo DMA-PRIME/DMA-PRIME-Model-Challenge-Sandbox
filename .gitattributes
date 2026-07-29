@@ -1,2 +1,8 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Never apply line-ending normalization to binary data files. Git's heuristic
+# usually detects these correctly, but being explicit removes any chance of a
+# committed parquet file being silently corrupted.
+*.parquet binary
+*.zip     binary

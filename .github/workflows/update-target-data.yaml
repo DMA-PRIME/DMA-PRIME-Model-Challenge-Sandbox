@@ -1,0 +1,75 @@
+name: Update target data (NHSN + NSSP)
+
+# NHSN publishes preliminary hospital admissions on Wednesdays and finalized
+# counts on Friday/Saturday; NSSP ED visit data refreshes Fridays. Running
+# Wednesday afternoon picks up that week's preliminary NHSN release together
+# with the most recent finalized NHSN and NSSP data, and stamps the result with
+# an `as_of` of that Wednesday.
+
+on:
+  workflow_dispatch:
+    inputs:
+      nssp_source:
+        description: "NSSP source: cdc (self-contained) or covidhub (one week fresher)"
+        required: false
+        default: "cdc"
+        type: choice
+        options: ["cdc", "covidhub"]
+      archive_raw:
+        description: "Also keep a dated copy of each raw pull"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    # 18:00 UTC every Wednesday (2:00pm ET / 1:00pm during standard time)
+    - cron: "0 18 * * 3"
+
+permissions:
+  contents: write
+
+jobs:
+  update-target-data:
+    runs-on: ubuntu-22.04
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      NSSP_SOURCE: ${{ inputs.nssp_source || 'cdc' }}
+      ARCHIVE_RAW_SNAPSHOTS: ${{ inputs.archive_raw && 'true' || 'false' }}
+      # Optional: set a Socrata app token in repo secrets to lift rate limits.
+      SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          install-r: false
+          use-public-rspm: true
+          extra-repositories: "https://hubverse-org.r-universe.dev"
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          cache: "always"
+          packages: |
+            any::dplyr
+            any::tidyr
+            any::readr
+            any::arrow
+            any::sessioninfo
+
+      - name: Build target data
+        run: Rscript scripts/get_target_data.R
+
+      - name: Show what changed
+        run: git status --porcelain target-data auxiliary-data
+
+      - name: Commit and push
+        run: |
+          if [ -z "$(git status --porcelain target-data auxiliary-data)" ]; then
+            echo "No changes to target data; nothing to commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add target-data auxiliary-data
+          git commit -m "Update target data (as_of $(date -u +%Y-%m-%d))"
+          git push

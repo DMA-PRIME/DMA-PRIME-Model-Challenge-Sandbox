@@ -40,11 +40,13 @@ NHSN_PRELIM_ID <- "mpgq-jmmr" # ...same, Preliminary               (published We
 NSSP_ID <- "rdmq-nq56"        # NSSP ED Visit Trajectories          (published Fri)
 
 ## Where to get NSSP from.
-##   "cdc"      - data.cdc.gov (self-contained; refreshed Fridays, so a Wednesday
-##                run sees data through the Saturday ~11 days prior)
 ##   "covidhub" - CDCgov/covid19-forecast-hub's Wednesday mirror of the same
-##                dataset (one week fresher, but depends on an external repo)
-NSSP_SOURCE <- Sys.getenv("NSSP_SOURCE", "cdc")
+##                dataset (default; one week fresher than CDC's own API, and
+##                more reliably accessible from automated workflows)
+##   "cdc"      - data.cdc.gov Socrata API (self-contained; refreshed Fridays,
+##                so a Wednesday run sees data through the Saturday ~11 days
+##                prior; may be subject to connectivity issues)
+NSSP_SOURCE <- Sys.getenv("NSSP_SOURCE", "covidhub")
 NSSP_COVIDHUB_URL <- paste0(
   "https://raw.githubusercontent.com/CDCgov/covid19-forecast-hub/",
   "main/auxiliary-data/nssp-raw-data/latest.parquet"

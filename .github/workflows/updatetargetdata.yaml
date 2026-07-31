@@ -1,0 +1,74 @@
+name: Update target data (NHSN + NSSP)
+
+# Regenerates the versioned target-data every week so the predtimechart
+# dashboard's observed line is present at every reference date. NHSN publishes
+# preliminary hospital admissions on Wednesdays and finalized counts Fri/Sat;
+# NSSP ED-visit data refreshes Fridays. Running Wednesday afternoon picks up that
+# week's data. The dashboard's own weekly build (Thursday) then re-renders from
+# the freshly committed target-data.
+
+on:
+  workflow_dispatch:
+    inputs:
+      nssp_source:
+        description: "NSSP source: covidhub (default) or cdc"
+        required: false
+        default: "covidhub"
+        type: choice
+        options: ["covidhub", "cdc"]
+      publish:
+        description: "Commit the result (uncheck for a dry run)"
+        required: false
+        default: true
+        type: boolean
+  schedule:
+    # 18:00 UTC every Wednesday
+    - cron: "0 18 * * 3"
+
+permissions:
+  contents: write
+
+jobs:
+  update-target-data:
+    runs-on: ubuntu-22.04
+    env:
+      NSSP_SOURCE: ${{ inputs.nssp_source || 'covidhub' }}
+      # Optional: add a Socrata app token as a repo secret to lift rate limits.
+      SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          install-r: false
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          cache: "always"
+          packages: |
+            any::dplyr
+            any::tidyr
+            any::readr
+            any::jsonlite
+            any::arrow
+
+      - name: Build target data
+        run: Rscript scripts/get_target_data.R
+
+      - name: Show what changed
+        run: git status --porcelain target-data auxiliary-data
+
+      - name: Commit and push
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish }}
+        run: |
+          if [ -z "$(git status --porcelain target-data auxiliary-data)" ]; then
+            echo "No changes; nothing to commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add target-data auxiliary-data
+          git commit -m "Update target data (as_of $(date -u +%Y-%m-%d))"
+          git push

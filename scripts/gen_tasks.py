@@ -20,9 +20,15 @@ HORIZONS = [0, 1, 2, 3]
 # never be scored, so it is excluded from that model task only.
 ED_EXCLUDE = ["72"]
 
+# ORDER MATTERS for the dashboard. predtimechart sets `initial_target_var` to the
+# FIRST target here, but computes `initial_as_of` as the max reference date across
+# ALL targets, then validates that value against only the initial target's list.
+# If the first target has fewer forecasts than another, the build fails with
+# "initial_as_of not in available_as_ofs". Keep the most widely forecast target
+# first; influenza is the challenge's longest-running target.
 PATHOGENS = [
-    ("covid", "COVID-19"),
     ("flu", "influenza"),
+    ("covid", "COVID-19"),
     ("rsv", "RSV"),
 ]
 

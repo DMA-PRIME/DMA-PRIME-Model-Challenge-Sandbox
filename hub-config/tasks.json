@@ -172,8 +172,8 @@
                         "target": {
                             "required": null,
                             "optional": [
-                                "wk inc covid hosp",
                                 "wk inc flu hosp",
+                                "wk inc covid hosp",
                                 "wk inc rsv hosp"
                             ]
                         },
@@ -448,18 +448,6 @@
                     },
                     "target_metadata": [
                         {
-                            "target_id": "wk inc covid hosp",
-                            "target_name": "incident COVID-19 hospitalizations",
-                            "target_units": "count",
-                            "target_keys": {
-                                "target": "wk inc covid hosp"
-                            },
-                            "description": "Weekly count of new laboratory-confirmed COVID-19 hospital admissions reported to NHSN for the week ending on the target_end_date.",
-                            "target_type": "discrete",
-                            "is_step_ahead": true,
-                            "time_unit": "week"
-                        },
-                        {
                             "target_id": "wk inc flu hosp",
                             "target_name": "incident influenza hospitalizations",
                             "target_units": "count",
@@ -467,6 +455,18 @@
                                 "target": "wk inc flu hosp"
                             },
                             "description": "Weekly count of new laboratory-confirmed influenza hospital admissions reported to NHSN for the week ending on the target_end_date.",
+                            "target_type": "discrete",
+                            "is_step_ahead": true,
+                            "time_unit": "week"
+                        },
+                        {
+                            "target_id": "wk inc covid hosp",
+                            "target_name": "incident COVID-19 hospitalizations",
+                            "target_units": "count",
+                            "target_keys": {
+                                "target": "wk inc covid hosp"
+                            },
+                            "description": "Weekly count of new laboratory-confirmed COVID-19 hospital admissions reported to NHSN for the week ending on the target_end_date.",
                             "target_type": "discrete",
                             "is_step_ahead": true,
                             "time_unit": "week"
@@ -652,8 +652,8 @@
                         "target": {
                             "required": null,
                             "optional": [
-                                "wk inc covid prop ed visits",
                                 "wk inc flu prop ed visits",
+                                "wk inc covid prop ed visits",
                                 "wk inc rsv prop ed visits"
                             ]
                         },
@@ -928,18 +928,6 @@
                     },
                     "target_metadata": [
                         {
-                            "target_id": "wk inc covid prop ed visits",
-                            "target_name": "proportion of weekly incident ED visits due to COVID-19",
-                            "target_units": "proportion",
-                            "target_keys": {
-                                "target": "wk inc covid prop ed visits"
-                            },
-                            "description": "Proportion of emergency department visits due to COVID-19 reported to NSSP for the week ending on the target_end_date. Reported by CDC as a percentage; submitted and scored here as a decimal proportion between 0 and 1.",
-                            "target_type": "continuous",
-                            "is_step_ahead": true,
-                            "time_unit": "week"
-                        },
-                        {
                             "target_id": "wk inc flu prop ed visits",
                             "target_name": "proportion of weekly incident ED visits due to influenza",
                             "target_units": "proportion",
@@ -947,6 +935,18 @@
                                 "target": "wk inc flu prop ed visits"
                             },
                             "description": "Proportion of emergency department visits due to influenza reported to NSSP for the week ending on the target_end_date. Reported by CDC as a percentage; submitted and scored here as a decimal proportion between 0 and 1.",
+                            "target_type": "continuous",
+                            "is_step_ahead": true,
+                            "time_unit": "week"
+                        },
+                        {
+                            "target_id": "wk inc covid prop ed visits",
+                            "target_name": "proportion of weekly incident ED visits due to COVID-19",
+                            "target_units": "proportion",
+                            "target_keys": {
+                                "target": "wk inc covid prop ed visits"
+                            },
+                            "description": "Proportion of emergency department visits due to COVID-19 reported to NSSP for the week ending on the target_end_date. Reported by CDC as a percentage; submitted and scored here as a decimal proportion between 0 and 1.",
                             "target_type": "continuous",
                             "is_step_ahead": true,
                             "time_unit": "week"

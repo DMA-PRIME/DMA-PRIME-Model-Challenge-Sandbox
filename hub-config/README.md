@@ -67,6 +67,15 @@ flag below. Be aware that splitting the dates across rounds makes the config muc
 harder to read: the later seasons end up hundreds of lines down the file, and it is
 easy to glance at the first list and conclude the hub stops early.
 
+## Target order matters for the dashboard
+
+`PATHOGENS` in `scripts/gen_tasks.py` puts **influenza first**, and that is
+deliberate. predtimechart uses the first target as `initial_target_var` but derives
+`initial_as_of` from the latest reference date across *all* targets, then checks it
+against only the first target's available dates. A first target with fewer forecasts
+than the others fails the dashboard build with `initial_as_of not in
+available_as_ofs`. Keep the most widely forecast target first.
+
 ## Adding a season
 
 `tasks.json` contains several hundred generated dates. Do not hand edit them.

@@ -17,6 +17,10 @@
 #' Following CovidHub and FluSight, this hub stores and scores them as a decimal
 #' proportion (0.0231). The /100 conversion happens here and nowhere else.
 #'
+#' COVERAGE: only weeks from FIRST_WEEK (default 2023-10-07, the start of the
+#' 2023-2024 respiratory virus season) onward are retained, in both the raw
+#' archives and the target data.
+#'
 #' VINTAGES: each run appends one `as_of` snapshot containing the full observed
 #' history as it stood that Wednesday. Re-running on the same date replaces that
 #' snapshot rather than duplicating it, so the script is idempotent.
@@ -40,15 +44,24 @@ NHSN_PRELIM_ID <- "mpgq-jmmr" # ...same, Preliminary               (published We
 NSSP_ID <- "rdmq-nq56"        # NSSP ED Visit Trajectories          (published Fri)
 
 ## Where to get NSSP from.
-##   "cdc"      - data.cdc.gov (self-contained; refreshed Fridays, so a Wednesday
-##                run sees data through the Saturday ~11 days prior)
 ##   "covidhub" - CDCgov/covid19-forecast-hub's Wednesday mirror of the same
-##                dataset (one week fresher, but depends on an external repo)
-NSSP_SOURCE <- Sys.getenv("NSSP_SOURCE", "cdc")
+##                dataset (default; one week fresher than CDC's own API, and
+##                more reliably accessible from automated workflows)
+##   "cdc"      - data.cdc.gov Socrata API (self-contained; refreshed Fridays,
+##                so a Wednesday run sees data through the Saturday ~11 days
+##                prior; may be subject to connectivity issues)
+NSSP_SOURCE <- Sys.getenv("NSSP_SOURCE", "covidhub")
 NSSP_COVIDHUB_URL <- paste0(
   "https://raw.githubusercontent.com/CDCgov/covid19-forecast-hub/",
   "main/auxiliary-data/nssp-raw-data/latest.parquet"
 )
+
+## Earliest week to keep. The challenge covers the 2023-2024 respiratory virus
+## season onward, which begins at the Saturday ending MMWR week 40 of 2023.
+## Applied server-side in the Socrata query (so the download is smaller) and
+## again client-side as a guard. This is also where RSV reporting to NHSN
+## begins, so all three pathogens share a start date.
+FIRST_WEEK <- as.Date(Sys.getenv("FIRST_WEEK", "2023-10-07"))
 
 ## Optional Socrata app token (higher rate limits). Not required.
 SOCRATA_TOKEN <- Sys.getenv("SOCRATA_APP_TOKEN", "")
@@ -148,7 +161,8 @@ clean_nhsn <- function(raw) {
     select(-abbreviation) |>
     pivot_longer(starts_with("wk inc"), names_to = "target",
                  values_to = "observation") |>
-    filter(!is.na(target_end_date), !is.na(observation))
+    filter(!is.na(target_end_date), !is.na(observation),
+           target_end_date >= FIRST_WEEK)
 }
 
 # ---------------------------------------------------------------------------
@@ -182,7 +196,8 @@ clean_nssp <- function(raw) {
     filter(location %in% valid_locations) |>
     pivot_longer(starts_with("wk inc"), names_to = "target",
                  values_to = "observation") |>
-    filter(!is.na(target_end_date), !is.na(observation))
+    filter(!is.na(target_end_date), !is.na(observation),
+           target_end_date >= FIRST_WEEK)
 }
 
 # ---------------------------------------------------------------------------
@@ -192,11 +207,13 @@ clean_nssp <- function(raw) {
 as_of <- last_wednesday()
 message("Building target data with as_of = ", as_of)
 
+nhsn_where <- sprintf("weekendingdate >= '%s'", format(FIRST_WEEK))
+
 message("Fetching NHSN finalized (", NHSN_FINAL_ID, ") ...")
-nhsn_final_raw <- socrata_fetch(NHSN_FINAL_ID)
+nhsn_final_raw <- socrata_fetch(NHSN_FINAL_ID, where = nhsn_where)
 
 message("Fetching NHSN preliminary (", NHSN_PRELIM_ID, ") ...")
-nhsn_prelim_raw <- socrata_fetch(NHSN_PRELIM_ID)
+nhsn_prelim_raw <- socrata_fetch(NHSN_PRELIM_ID, where = nhsn_where)
 
 message("Fetching NSSP (source = ", NSSP_SOURCE, ") ...")
 nssp_raw <- if (identical(NSSP_SOURCE, "covidhub")) {
@@ -204,12 +221,41 @@ nssp_raw <- if (identical(NSSP_SOURCE, "covidhub")) {
   utils::download.file(NSSP_COVIDHUB_URL, tmp, mode = "wb", quiet = TRUE)
   arrow::read_parquet(tmp) |> mutate(across(everything(), as.character))
 } else {
-  socrata_fetch(NSSP_ID, where = "county='All'")
+  socrata_fetch(NSSP_ID, where = sprintf("county='All' AND week_end >= '%s'",
+                                         format(FIRST_WEEK)))
 }
 
 # ---------------------------------------------------------------------------
 # Archive the as-is pulls
 # ---------------------------------------------------------------------------
+
+# Belt and braces: re-apply the row filters client-side before archiving. A
+# Socrata $where clause that is silently ignored (this has happened) would
+# otherwise dump ~350k sub-state HSA rows into the archive every week, none of
+# which this hub uses. Filtering here means the stored file always matches what
+# was actually requested.
+{
+  c_county <- pick_col(nssp_raw, "county", "^county$", "NSSP county")
+  c_wkend <- pick_col(nssp_raw, "week_end", "week.?end", "NSSP week end date")
+  n_before <- nrow(nssp_raw)
+  nssp_raw <- nssp_raw |>
+    filter(.data[[c_county]] == "All",
+           as.Date(substr(.data[[c_wkend]], 1, 10)) >= FIRST_WEEK)
+  if (nrow(nssp_raw) < n_before) {
+    message(sprintf("  NSSP: kept %d of %d rows after county/date filter",
+                    nrow(nssp_raw), n_before))
+  }
+}
+
+{
+  c_wk <- pick_col(nhsn_final_raw, "weekendingdate", "week.*end",
+                   "NHSN week ending date")
+  keep <- function(df) {
+    df |> filter(as.Date(substr(.data[[c_wk]], 1, 10)) >= FIRST_WEEK)
+  }
+  nhsn_final_raw <- keep(nhsn_final_raw)
+  nhsn_prelim_raw <- keep(nhsn_prelim_raw)
+}
 
 write_raw <- function(df, dir) {
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)

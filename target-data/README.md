@@ -86,7 +86,18 @@ deadline while keeping settled weeks on their finalized figures.
 - **RSV admissions were voluntary before 2024-11-01.** RSV reporting to NHSN became
   mandatory alongside COVID-19 and influenza on 1 November 2024. Earlier RSV values
   are sparse and are not comparable in coverage to later ones.
-- **NSSP history begins 2022-10-01.** Earlier weeks are not available.
+- **NSSP history begins 2022-10-01**, but see the coverage window below.
+
+## Coverage window
+
+Only weeks from the **2023-2024 respiratory virus season** onward are retained:
+`target_end_date >= 2023-10-07` (the Saturday ending MMWR week 40 of 2023). This is
+also when RSV reporting to NHSN began, so all three pathogens share a start date and
+no target has a long stretch of missing history.
+
+The cutoff is applied in three places: server-side in the Socrata query (so the
+download is smaller), client-side before the raw archives are written, and again in
+the cleaned target data. Change it with the `FIRST_WEEK` environment variable.
 
 ## Reproducing a real time view
 

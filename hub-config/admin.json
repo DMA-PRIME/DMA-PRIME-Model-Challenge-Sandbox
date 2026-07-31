@@ -8,10 +8,13 @@
     },
     "repository": {
         "host": "github",
-        "owner": "DMA-PRIME",
-        "name": "DMA-PRIME-Model-Challenge"
+        "owner": "bleicham",
+        "name": "DMA-PRIME-Model-Challenge-Sandbox"
     },
-    "file_format": ["csv", "parquet"],
+    "file_format": [
+        "csv",
+        "parquet"
+    ],
     "timezone": "US/Eastern",
     "cloud": {
         "enabled": false

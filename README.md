@@ -55,6 +55,9 @@ available for the hospital admission targets only: NSSP does not publish ED visi
 data for Puerto Rico, so `location = "72"` is deliberately excluded from the ED
 model task rather than left open to forecasts that could never be scored.
 
+**Coverage.** Target data begin with the 2023-2024 respiratory virus season (week
+ending 2023-10-07), which is also when RSV reporting to NHSN began.
+
 **Horizons.** 0, 1, 2, and 3 weeks ahead. Submitting all four is encouraged but not
 required.
 

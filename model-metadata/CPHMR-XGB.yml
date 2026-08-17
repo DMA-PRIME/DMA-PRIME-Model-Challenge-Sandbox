@@ -1,0 +1,25 @@
+team_name: "CPHMR, Clemson University"
+team_abbr: "CPHMR"
+model_name: "XGBoost"
+model_abbr: "XGB"
+model_contributors: [
+  {
+    "name": "Gaurob Saha",
+    "affiliation": "Clemson University, South Carolina",
+    "email": "gsaha@clemson.edu"
+  }
+]
+license: "CC-BY-4.0"
+designated_model: false
+data_inputs: "CDC weekly COVID-19 hospital admissions data and engineered temporal features"
+
+methods: "XGBoost-based forecasting model using lagged admissions, temporal, trend, and related engineered features."
+
+methods_long: "An XGBoost gradient-boosted decision tree forecasting model trained using historical COVID-19 hospital admission observations and engineered temporal features. The model generates probabilistic forecasts for weekly COVID-19 hospital admissions across forecast horizons 0 through 3 weeks ahead. Quantile forecasts are generated at the required prediction levels and constrained to be non-negative."
+
+ensemble_of_models: false
+ensemble_of_hub_models: false
+model_version: "1.0"
+website_url: "https://github.com/GaurobSaha/DMA-PRIME-Model-Challenge-Sandbox"
+team_funding: ""
+backfill_adjustment: "false"
